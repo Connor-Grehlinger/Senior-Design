@@ -1,5 +1,4 @@
-/*
-  Team Breach Prototype Testing 
+/*  Team Breach Prototype Testing 
   Connor Grehlinger, Keith Doggett, Mathew Schlogel, John Oribioye, Matt Leung
   --------------------------------------------------------------
   #define PWM_SOURCE 34
@@ -12,7 +11,6 @@
 
   Trying with digital pin 4 first (PORTD = B00010000)
   PORTD = B10101000; // sets digital pins 7,5,3 HIGH
-  
  */
  
 // Definition of interrupt names
@@ -20,7 +18,7 @@
 // ISR interrupt service routine
 #include <avr/interrupt.h >
 
-#define INPUTPIN 4
+#define INPUT_PIN 4
 
 volatile unsigned long pulseRiseTime;
 volatile int lastInterruptTime;
@@ -36,7 +34,7 @@ void calcPulseTime()
     lastInterruptTime = micros();       // returns the time passed since the program has started running 
 
     // check if the signal pin has gone high 
-    if (digitalRead(INPUTPIN) == HIGH)             // PORTB == B00010000
+    if (PORTB == B00010000)             // digitalRead(INPUTPIN) == HIGH
     {
         pulseRiseTime = micros();       // capture rise time
     }
@@ -53,14 +51,14 @@ void calcPulseTime()
 
 void setup() {
 
-    Serial.println("Processing initialization");
     
-    pinMode(INPUTPIN, INPUT);                           // set pin mode
+    pinMode(INPUT_PIN, INPUT);                           // set pin mode
     
     pulseRiseTime = 0; 
     attachInterrupt(INPUTPIN, calcPulseTime, CHANGE);   // attach interrupt 
+    
+    
     Serial.begin(115200);
- 
     Serial.println("Finished initialization");
 }
 
@@ -72,9 +70,9 @@ void loop() {
     index++;
     
     */
-    
-    Serial.print(pulseRiseTime);
-    delay(10);
+                    
+    Serial.println(pulseRiseTime);            // Printing out to serial monitor for now
+    //delay(10);                              // Will need to store data values for replay
 }
 
 
