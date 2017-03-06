@@ -55,7 +55,7 @@ void setup() {
     pinMode(INPUT_PIN, INPUT);                           // set pin mode
     
     pulseRiseTime = 0; 
-    attachInterrupt(INPUTPIN, calcPulseTime, CHANGE);   // attach interrupt 
+    attachInterrupt(INPUT_PIN, calcPulseTime, CHANGE);   // attach interrupt 
     
     
     Serial.begin(115200);
