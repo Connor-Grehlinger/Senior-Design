@@ -11,6 +11,10 @@
 
   Trying with digital pin 4 first (PORTD = B00010000)
   PORTD = B10101000; // sets digital pins 7,5,3 HIGH
+  
+  
+  DDRD &= ~(1<<PD2);    //Configure PORTD pin 2 as an input
+  PORTD |= (1<<PD2);    //Activate pull-ups in PORTD pin 2
  */
  
 // Definition of interrupt names
@@ -39,7 +43,7 @@ ISR(INT0_vect){
     if (/*PORTD == B00000100*/ digitalRead(EX_INT_PIN))         // Rising edge
     {
         risingEdgeTime = micros();
-        digitalWrite(LED_PIN, HIGH);
+        //digitalWrite(LED_PIN, HIGH);
     }
     else
     {
