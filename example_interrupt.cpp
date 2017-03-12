@@ -28,35 +28,30 @@
 #define LED_PIN 13          // PortB 5
 
 
-volatile int pulseTime;
-volatile int pulseTimes[100];
-volatile int risingEdgeTime;
+volatile unsigned long periodLength;
+volatile unsigned long periodLengths[100];
+volatile unsigned long risingEdgeTime;
 volatile int fallingEdgeTime;
-volatile int state = 0;
 
 unsigned int index = 0;
 
 
 void calcPulseTime()
 {
-    //state = (PIND & (1 << PD2));
-    if (PIND & (1 << PD2))         // Rising edge
+    if (PIND & (1 << PD2))         // Rising edge (PORTD pin 2 is HIGH)
     {
-        //risingEdgeTime = micros();
-        risingEdgeTime = millis();
+        risingEdgeTime = micros();
         PORTB |= B00100000;         // LED to HIGH
     }
     else
     {
-        //fallingEdgeTime = micros();
-        fallingEdgeTime = millis();
-        pulseTime = fallingEdgeTime - risingEdgeTime;
+        periodLength = ((volatile unsigned long)micros() - risingEdgeTime);
         
         PORTB &= B11011111;         // LED to LOW
         
         if (index < 100)
         {
-            pulseTimes[index] = pulseTime;
+            periodLengths[index] = periodLength;
             index++;
         }
     }
@@ -84,14 +79,17 @@ void setup() {
 
 void loop() {
   
-    if(/*PORTD == B00010000 button press*/digitalRead(INPUT_PIN))
+    if(PIND & (1 << PD4))
     {
-        digitalWrite(LED_PIN, HIGH);
+        PORTB |= B00100000;         // LED to HIGH
         
-        for (int i = 0; i < 10; i++)
+        delay(10000);
+        
+        for (int i = 0; i < 50; i++)
         {
-            Serial.println(pulseTimes[i]);
+            Serial.println(periodLengths[i]);
         }
+        
         delay(100000);
     }
 
