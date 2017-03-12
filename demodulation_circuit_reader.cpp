@@ -18,16 +18,32 @@
 // ISR interrupt service routine
 #include <avr/interrupt.h >
 
-//#define INPUT_PIN 4       // can be used for change interrupt
+#define INPUT_PIN 4         // Will be used to output collected pulse times
 #define EX_INT_PIN 2        // INTO uses pin 2, external interrupt
+                            // This is port D2
 
-volatile unsigned long pulseRiseTime;
-volatile int lastInterruptTime;
+
 volatile int pulseTime;
-volatile int pulseValues[100];
-unsigned int index = 0;
-int i = 0;
+volatile int pulseTimes[100];
+volatile int risingEdgeTime;
+volatile int fallingEdgeTime;
 
+unsigned int index = 0;
+
+// ISR for external interrupt
+ISR(INT0_vect){
+    if (PORTD == B00000100)         // Rising edge
+    {
+        risingEdgeTime = micros();
+    }
+    else
+    {
+        fallingEdgeTime = micros();
+        pulseTime = fallingEdgeTime - risingEdgeTime;
+        pulseTimes[index] = pulseTime;
+        index++;
+    }
+}
 
 void setup() {
     
@@ -35,29 +51,34 @@ void setup() {
     Serial.println("Initializing interrupt service routine");
     
     pinMode(EX_INT_PIN, INPUT);                         // set external interrupt as input
+    pinMode(INPUT_PIN, INPUT);
     
     Serial.println("Processing initialization");
     
     GICR |= (1 << INTO);                                // Enable INTO interrupt on general interrupt control register
     MCUCR |= (1 << ISC00);                              // MCU control register
-    MCUCR |= (1 << ISC01);                              // 1 and 1 = rising edge, 1 and 0 = falling edge
+    MCUCR |= (0 << ISC01);                              // 1 << ISC00 and 1 << ISC01 = rising edge, 0 << ISC00 and 1 << ISC01 = falling edge, 
+                                                        // 1 << ISC00 and 0 << ISC01 = both rising and falling edges 
+                                                        
+    PORTD &= B11101111;
     
     Serial.println("Finished initialization");
 }
 
 
 void loop() {
-
-    /* Will need to store pulse times
     
-    pulseValues[index] = pulseRiseTime;
-    index++;
     
-    // 
-                    
-    Serial.println(pulseRiseTime);            // Printing out to serial monitor for now
-    //delay(10);                              // Will need to store data values for replay
+    if(PORTD == B00010000/*button press*/)
+    {
+        for (int i = 0; i < 100; i++)
+        {
+            Serial.print(pulseTimes[i] + ", ");
+        }
+    }
+    
 }
+
 
 /* ---------------------------------------------------------------------------------------
 // calcPulseTime is the interrupt handler (ISR)
@@ -66,7 +87,7 @@ void calcPulseTime()
     lastInterruptTime = micros();       // returns the time passed since the program has started running 
 
     // check if the signal pin has gone high 
-    if (PORTB == B00010000)             // digitalRead(INPUTPIN) == HIGH
+    if (PORTD == B00010000)             // digitalRead(INPUTPIN) == HIGH
     {
         pulseRiseTime = micros();       // capture rise time
     }
