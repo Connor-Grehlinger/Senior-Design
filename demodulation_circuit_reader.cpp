@@ -31,14 +31,15 @@ volatile int pulseTime;
 volatile int pulseTimes[100];
 volatile int risingEdgeTime;
 volatile int fallingEdgeTime;
+volatile int state = 0;
 
 unsigned int index = 0;
 
 
 void calcPulseTime()
 {
-    
-    if (digitalRead(LED_PIN))         // HIGH
+    state = digitalRead(LED_PIN);
+    if (state)         // HIGH
     {
         digitalWrite(LED_PIN, LOW);
     }
@@ -69,7 +70,7 @@ void setup() {
     
     PORTD &= B11101111;                                 // set LED to low
     
-    attachInterrupt(EX_INT_PIN, calcPulseTime, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(EX_INT_PIN), calcPulseTime, CHANGE);
     //sei();
     
     
