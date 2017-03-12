@@ -18,7 +18,8 @@
 // ISR interrupt service routine
 #include <avr/interrupt.h >
 
-#define INPUT_PIN 4
+//#define INPUT_PIN 4       // can be used for change interrupt
+#define EX_INT_PIN 2        // INTO uses pin 2, external interrupt
 
 volatile unsigned long pulseRiseTime;
 volatile int lastInterruptTime;
@@ -28,6 +29,37 @@ unsigned int index = 0;
 int i = 0;
 
 
+void setup() {
+    
+    Serial.begin(115200);
+    Serial.println("Initializing interrupt service routine");
+    
+    pinMode(EX_INT_PIN, INPUT);                         // set external interrupt as input
+    
+    Serial.println("Processing initialization");
+    
+    GICR |= (1 << INTO);                                // Enable INTO interrupt on general interrupt control register
+    MCUCR |= (1 << ISC00);                              // MCU control register
+    MCUCR |= (1 << ISC01);                              // 1 and 1 = rising edge, 1 and 0 = falling edge
+    
+    Serial.println("Finished initialization");
+}
+
+
+void loop() {
+
+    /* Will need to store pulse times
+    
+    pulseValues[index] = pulseRiseTime;
+    index++;
+    
+    // 
+                    
+    Serial.println(pulseRiseTime);            // Printing out to serial monitor for now
+    //delay(10);                              // Will need to store data values for replay
+}
+
+/* ---------------------------------------------------------------------------------------
 // calcPulseTime is the interrupt handler (ISR)
 void calcPulseTime()
 {
@@ -69,11 +101,12 @@ void loop() {
     pulseValues[index] = pulseRiseTime;
     index++;
     
-    */
+    // 
                     
     Serial.println(pulseRiseTime);            // Printing out to serial monitor for now
     //delay(10);                              // Will need to store data values for replay
 }
+*/
 
 
 
