@@ -36,9 +36,10 @@ unsigned int index = 0;
 
 // ISR for external interrupt
 ISR(INT0_vect){
-    if (PORTD == B00000100)         // Rising edge
+    if (/*PORTD == B00000100*/ digitalRead(EX_INT_PIN))         // Rising edge
     {
         risingEdgeTime = micros();
+        digitalWrite(LED_PIN, HIGH);
     }
     else
     {
