@@ -45,9 +45,12 @@ ISR(INT0_vect){
     else
     {
         periodLength = ((volatile unsigned long)micros() - risingEdgeTime);
+        
+        PORTB &= B11011111;         // LED to LOW
+        
         if (index < 100)
         {
-            pulseTimes[index] = pulseTime;
+            periodLengths[index] = periodLength;
             index++;
         }
     }
