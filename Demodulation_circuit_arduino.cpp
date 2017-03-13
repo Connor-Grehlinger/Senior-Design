@@ -15,9 +15,10 @@
   
   DDRD &= ~(1<<PD2);    //Configure PORTD pin 2 as an input
   PORTD |= (1<<PD2);    //Activate pull-ups in PORTD pin 2
- */
+  
+*/
  
-// Definition of interrupt names
+// Include IO and interrupt libraries
 #include <avr/io.h >
 // ISR interrupt service routine
 #include <avr/interrupt.h >
@@ -33,9 +34,14 @@ volatile unsigned long periodLength;
 volatile unsigned long periodLengths[100];
 volatile unsigned long risingEdgeTime;
 
+volatile unsigned long firstRisingEdgeTime;
+volatile unsigned long secondRisingEdgeTime;
+volatile int state = 0;
+
 unsigned int index = 0;
 
 // ISR for external interrupt
+/*
 ISR(INT0_vect){
     if (PIND & (1 << PD2))         // Rising edge
     {
@@ -55,19 +61,20 @@ ISR(INT0_vect){
         }
     }
 }
+*/
 
 void calcPulseTime()
 {
     if (PIND & (1 << PD2))         // Rising edge (PORTD pin 2 is HIGH)
     {
         risingEdgeTime = micros();
-        PORTB |= B00100000;         // LED to HIGH
+        //PORTB |= B00100000;         // LED to HIGH
     }
     else
     {
         periodLength = ((volatile unsigned long)micros() - risingEdgeTime);
         
-        PORTB &= B11011111;         // LED to LOW
+        //PORTB &= B11011111;         // LED to LOW
         
         if (index < 100)
         {
@@ -77,6 +84,28 @@ void calcPulseTime()
     }
 }
 
+void calcPulseTime1()
+{
+    if(!state)
+    {
+        firstRisingEdgeTime = micros();
+        state ^= 1;
+    }
+    else
+    {
+        secondRisingEdgeTime = micros();
+        periodLength = (secondRisingEdgeTime - firstRisingEdgeTime);
+        firstRisingEdgeTime = secondRisingEdgeTime;
+        if (index < 100)
+        {
+            periodLengths[index] = periodLength;
+            index++;
+        }
+        state ^= 1;
+    }
+    
+    
+}
 
 void setup() {
     
@@ -100,7 +129,8 @@ void setup() {
                                                         
     PORTD &= B11101111;                                 // Set LED to LOW
     
-    attachInterrupt(digitalPinToInterrupt(EX_INT_PIN), calcPulseTime, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(EX_INT_PIN), calcPulseTime, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(EX_INT_PIN), calcPulseTime1, RISING);
     
     Serial.println("Finished initialization");
 }
@@ -112,7 +142,7 @@ void loop() {
     {
         PORTB |= B00100000;         // LED to HIGH
         
-        delay(20000);
+        delay(10000);
         
         for (int i = 0; i < 25; i++)
         {
