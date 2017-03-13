@@ -26,29 +26,25 @@
 #define EX_INT_PIN 2        // INTO uses pin 2, external interrupt
                             // This is port D2
     
-                            
 #define LED_PIN 13
 
 
-
-volatile int pulseTime;
-volatile int pulseTimes[100];
-volatile int risingEdgeTime;
-volatile int fallingEdgeTime;
+volatile unsigned long periodLength;
+volatile unsigned long periodLengths[100];
+volatile unsigned long risingEdgeTime;
 
 unsigned int index = 0;
 
 // ISR for external interrupt
 ISR(INT0_vect){
-    if (/*PORTD == B00000100*/ digitalRead(EX_INT_PIN))         // Rising edge
+    if (PIND & (1 << PD2))         // Rising edge
     {
         risingEdgeTime = micros();
-        //digitalWrite(LED_PIN, HIGH);
+        PORTB |= B00100000;         // LED to HIGH
     }
     else
     {
-        fallingEdgeTime = micros();
-        pulseTime = fallingEdgeTime - risingEdgeTime;
+        periodLength = ((volatile unsigned long)micros() - risingEdgeTime);
         if (index < 100)
         {
             pulseTimes[index] = pulseTime;
@@ -56,6 +52,28 @@ ISR(INT0_vect){
         }
     }
 }
+
+void calcPulseTime()
+{
+    if (PIND & (1 << PD2))         // Rising edge (PORTD pin 2 is HIGH)
+    {
+        risingEdgeTime = micros();
+        PORTB |= B00100000;         // LED to HIGH
+    }
+    else
+    {
+        periodLength = ((volatile unsigned long)micros() - risingEdgeTime);
+        
+        PORTB &= B11011111;         // LED to LOW
+        
+        if (index < 100)
+        {
+            periodLengths[index] = periodLength;
+            index++;
+        }
+    }
+}
+
 
 void setup() {
     
@@ -68,28 +86,38 @@ void setup() {
     
     Serial.println("Processing initialization");
     
-    //GICR |= (1 << INTO);                                // Enable INTO interrupt on general interrupt control register
-    sei();
+    /*
+    GICR |= (1 << INTO);                                // Enable INTO interrupt on general interrupt control register
+    
     MCUCR |= (1 << ISC00);                              // MCU control register
     MCUCR |= (0 << ISC01);                              // 1 << ISC00 and 1 << ISC01 = rising edge, 0 << ISC00 and 1 << ISC01 = falling edge, 
                                                         // 1 << ISC00 and 0 << ISC01 = both rising and falling edges 
+    
+    */
                                                         
-    PORTD &= B11101111;
+    PORTD &= B11101111;                                 // Set LED to LOW
+    
+    attachInterrupt(digitalPinToInterrupt(EX_INT_PIN), calcPulseTime, CHANGE);
     
     Serial.println("Finished initialization");
 }
 
 
 void loop() {
-    
-    
-    if(/*PORTD == B00010000 button press*/ digitalRead(INPUT_PIN))
+  
+    if(PIND & (1 << PD4))
     {
-        for (int i = 0; i < 100; i++)
+        PORTB |= B00100000;         // LED to HIGH
+        
+        delay(20000);
+        
+        for (int i = 0; i < 25; i++)
         {
-            Serial.println(pulseTimes[i]);
+            Serial.println(periodLengths[i]);
         }
     }
-    PORTD &= B11101111;
+
 }
+
+
 
