@@ -34,17 +34,16 @@ File timingValues;          // SD card file for data storage
     
 #define LED_PIN 13
 
+// changed from long to int
+volatile unsigned int periodLength;
+volatile unsigned int periodLengths[100];
 
-volatile unsigned long periodLength;
-volatile unsigned long periodLengths[100];
-volatile unsigned long risingEdgeTime;
-
-volatile unsigned long firstRisingEdgeTime;
-volatile unsigned long secondRisingEdgeTime;
-volatile int state = 0;
+volatile unsigned int firstRisingEdgeTime;
+volatile unsigned int secondRisingEdgeTime;
+volatile char state = 0;
 
 unsigned int index = 0;
-unsigned char lock = 0;
+char lock = 0;
 
 
 // ISR function
@@ -82,15 +81,13 @@ void setup() {
       Serial.println("initialization failed!");
       return;
      }
-     Serial.println("Initialization done.");
+    Serial.println("Initialization done.");
 
-    // open the file. note that only one file can be open at a time,
-    // so you have to close this one before opening another.
+    // Clear contents before writing to same file again
     SD.remove("test.txt");
     
     timingValues = SD.open("test.txt", FILE_WRITE);
-
-    // if the file opened okay, write to it:
+    
     if (timingValues) {
       Serial.println("Writing period lengths to test.txt file.");
       timingValues.close();
@@ -129,17 +126,15 @@ void loop() {
         delay(5000);
 
         timingValues = SD.open("test.txt", FILE_WRITE);
-        // if the file opened okay, write to it:
         if (timingValues) {
           Serial.println("Writing to test.txt...");
             for (int i = 0; i < 100; i++)
             {
-
-              if (periodLengths[i] < 72 && periodLengths[i] > 56)
+              if (periodLengths[i] <= 72 && periodLengths[i] > 55)
               {
                 periodLengths[i] = 1;
               }
-              else if (periodLengths[i] > 72 && periodLengths[i] < 88)
+              else if (periodLengths[i] > 72 && periodLengths[i] < 90)
               {
                 periodLengths[i] = 0;
               }
@@ -157,13 +152,17 @@ void loop() {
             // close the file:
             timingValues.close();
             Serial.println("Done write process.");
+            
         } else {
           // if the file didn't open, print an error:
-          Serial.println("error opening test.txt");
+          Serial.println("Error opening test.txt during write");
         }
         delay(5000);
+
+        // --------WRITE COMPLETE--------
+
         
-        // re-open the file for reading:
+        // Re-open for reading 
         timingValues = SD.open("test.txt");
         
         if (timingValues) {
@@ -174,11 +173,9 @@ void loop() {
               Serial.write(timingValues.read());
               // this function returns the next byte/charactrer 
           }
-          // close the file:
           timingValues.close();
         } else {
-          // if the file didn't open, print an error:
-          Serial.println("error opening test.txt");
+          Serial.println("Error opening test.txt");
         }
         lock = 0;
     }
