@@ -42,6 +42,7 @@ unsigned int index = 0;
 
 // ISR for external interrupt
 /*
+//void calcPulseTime(){
 ISR(INT0_vect){
     if (PIND & (1 << PD2))         // Rising edge
     {
@@ -63,26 +64,6 @@ ISR(INT0_vect){
 }
 */
 
-void calcPulseTime()
-{
-    if (PIND & (1 << PD2))         // Rising edge (PORTD pin 2 is HIGH)
-    {
-        risingEdgeTime = micros();
-        //PORTB |= B00100000;         // LED to HIGH
-    }
-    else
-    {
-        periodLength = ((volatile unsigned long)micros() - risingEdgeTime);
-        
-        //PORTB &= B11011111;         // LED to LOW
-        
-        if (index < 100)
-        {
-            periodLengths[index] = periodLength;
-            index++;
-        }
-    }
-}
 
 void calcPulseTime1()
 {
@@ -90,12 +71,16 @@ void calcPulseTime1()
     {
         firstRisingEdgeTime = micros();
         state ^= 1;
+        PORTB |= B00100000;         // LED to HIGH
     }
     else
     {
         secondRisingEdgeTime = micros();
         periodLength = (secondRisingEdgeTime - firstRisingEdgeTime);
         firstRisingEdgeTime = secondRisingEdgeTime;
+        
+        PORTB &= B11011111;         // LED to LOW
+        
         if (index < 100)
         {
             periodLengths[index] = periodLength;
@@ -103,8 +88,6 @@ void calcPulseTime1()
         }
         state ^= 1;
     }
-    
-    
 }
 
 void setup() {
