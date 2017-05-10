@@ -21,8 +21,6 @@
 File timingValues;          // SD card file for data storage
 
 #define INPUT_PIN 4         // Will be used to output collected pulse times
-#define EX_INT_PIN 2        // INTO uses pin 2, external interrupt
-                            // This is port D2
     
 #define LED_PIN 13
 
@@ -36,7 +34,7 @@ volatile char state = 0;
 unsigned int index = 0;
 char lock = 0;
 
-const int ocr1aPin = 9;   // Output of output comparator 1
+const int ocr1aPin = 9;   // Output pin of output comparator 1
 
 // Function for setting the frequency of the replay signal
 // Parameter passed in will be 15
@@ -110,6 +108,7 @@ void off()
 
 
 void setup() {
+  
     Serial.begin(115200);
     
     while(!Serial);
@@ -123,37 +122,41 @@ void setup() {
     Serial.println("Initialization done.");
 
     
-    /*
     timingValues = SD.open("test.txt", FILE_READ);
     
     if (timingValues) {
       Serial.println("File opened correcrly: test.txt");
+      
+      // Build array of captured data on SD
+      int i = 0;
+      while (timingValues.available()) {
+              
+        //periodLengths[i] = (volatile unsigned int)timingValues.read();
+        periodLengths[i] = (volatile unsigned int)timingValues.println();
+        //Serial.write(timingValues.read());
+        i++;
+      }
+      
       timingValues.close();
+      
     } else {
+      
       Serial.println("Error opening test.txt");
     }
-    */
+    
     
     Serial.println("Trigger pin 4 for replay data bitset...");
     
-    pinMode(EX_INT_PIN, INPUT);                         // set external interrupt as input
-    pinMode(INPUT_PIN, INPUT);
+    pinMode(INPUT_PIN, INPUT);  // Used to trigger replay
     pinMode(LED_PIN, OUTPUT);
+    pinMode(ocr1aPin, OUTPUT);  // Encoded signal output
     
-    /*
-    GICR |= (1 << INTO);                                // Enable INTO interrupt on general interrupt control register
-    
-    MCUCR |= (1 << ISC00);                              // MCU control register
-    MCUCR |= (0 << ISC01);                              // 1 << ISC00 and 1 << ISC01 = rising edge, 0 << ISC00 and 1 << ISC01 = falling edge, 
-                                                        // 1 << ISC00 and 0 << ISC01 = both rising and falling edges  
-    */
-
     digitalWrite(ocr1aPin, LOW);
-    pinMode(ocr1aPin, OUTPUT);
     
     PORTD &= B11101111;                                 // Set LED to LOW
 
-    setFrequency(12500);
+    setFrequency(15600);        // Default frequency of encoded 0
+    
     off();
    
 }
@@ -164,44 +167,29 @@ void loop() {
     if(PIND & (1 << PD4) && !lock)
     {
         lock = 1;
+        PORTB |= B00100000;         // LED to HIGH to indicate replay
         delay(2000);
-        PORTB |= B00100000;         // LED to HIGH
         
-        // Re-open for reading 
-        timingValues = SD.open("test.txt", FILE_READ);
-        
-        if (timingValues) {
-          Serial.println("Re-opening for read, test.txt file contents:");
-
-          // read from the file until there's nothing else in it:
-          int i = 0;
-          while (timingValues.available()) {
-              
-              //periodLengths[i] = (volatile unsigned int)timingValues.read();
-              periodLengths[i] = (volatile unsigned int)timingValues.println();
-              //Serial.write(timingValues.read());
-              i++;
-          }
-          timingValues.close();
-        } else {
-          Serial.println("Error opening test.txt");
-        }
-        delay(3000);
         Serial.println("Now displaying values from newly populated on-board array:");
-        for (int i = 0; i < 144; i++)
+        delay(2000);
+        
+        while(1)    // Infinite loop for replay
         {
-          Serial.println(periodLengths[i]);
-          if (periodLengths[i] == 0)
+          for (int i = 0; i < 144; i++)
           {
-            setFrequency(12500);
-          }
-          else if(periodLengths[i] == 1)
-          {
-            setFrequency(15600);
-          }
-          else 
-          {
-            //errror has occurred 
+            Serial.println(periodLengths[i]);
+            if (periodLengths[i] == 0)
+            {
+              setFrequency(15600);
+            }
+            else if(periodLengths[i] == 1)
+            {
+              setFrequency(15600);
+            }
+            else 
+            {
+              // Received a decoded '2' which is an error, will keep previous frequency
+            }
           }
         }
         lock = 0;
