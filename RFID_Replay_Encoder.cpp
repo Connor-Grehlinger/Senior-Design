@@ -6,7 +6,7 @@
   -Data bitset from RFID card is read from test.txt file on SD card
   -Arduino encodes an output signal based on bitset
   -Square wave signal of varying frequency (0 --> 15.6kHz, 1 --> 12.5kHz)
-  
+  -Loops through data array from RFID capture, mimicking actual card transmission 
   
 */
  
@@ -26,7 +26,6 @@ File timingValues;          // SD card file for data storage
     
 #define LED_PIN 13
 
-// changed from long to int
 volatile unsigned int periodLength;
 volatile unsigned int periodLengths[144];
 
@@ -37,11 +36,10 @@ volatile char state = 0;
 unsigned int index = 0;
 char lock = 0;
 
+const int ocr1aPin = 9;   // Output of output comparator 1
 
-// -------- Output signal development --------
-const int ocr1aPin = 9;
-
-// Set the frequency that we will get on pin OCR1A
+// Function for setting the frequency of the replay signal
+// Parameter passed in will be 15
 void setFrequency(uint32_t freq)
 {
   uint32_t requiredDivisor = (F_CPU/2)/(uint32_t)freq;
@@ -80,17 +78,33 @@ void setFrequency(uint32_t freq)
   OCR1A = (top & 0xFF);
 }
 
-// Turn the frequency on
+
+// Turn on the frequency (reset and enable)
 void on()
 {
-  TCNT1H = 0;
-  TCNT1L = 0;  
-  TCCR1A |= (1 << COM1A0);
+  // TCNT is the timer/counter register
+  // -This resets the register value and must be done by writing 
+  // -the high byte first then the low byte 
+  
+  TCNT1H = 0;   // Write the high byte first
+  TCNT1L = 0;   // Write the low byte next
+  
+  // -The high byte value is first placed in temp register,
+  // -once low byte is written the value is moved to the actual register
+
+  // TCCR is the timer/counter control register
+  // -This determines how the compare output pin is connected to timer 1
+  TCCR1A |= (1 << COM1A0);  // COM1AO = 1;
+  // -Setting COM1A0 (compare output mode bit 0) to 1 indicates
+  // that OC1 (output comparator) will be toggled on compare match
 }
 
-// Turn the frequency off and turn of the IR LED
+
+// Turn off the frequency by inverting control bit
 void off()
 {
+  // TCCR timer/counter control register
+  // -Sets COM1A0 to 0 which disconnects OC1 from timer/counter 1
   TCCR1A &= ~(1 << COM1A0);
 }
 

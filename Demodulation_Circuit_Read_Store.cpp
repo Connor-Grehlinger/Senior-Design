@@ -1,7 +1,13 @@
 /*  Team Breach Prototype Testing 
   Connor Grehlinger, Keith Doggett, Mathew Schlogel, John Oribioye, Matt Leung
-  --------------------------------------------------------------
-  --------------------------------------------------------------
+  ----------------------------------------------------------------------------
+  Source code for measuring period lengths of demodulation circuit signal
+  and decoding and storage of data.
+  
+  -ISR records timing values and stores in an array
+  -The timing values in the array are passed through a decision function for binary decoding
+  -Decoded values are written to an SD card to be used for a future replay attack
+  
 */
  
 // Include IO and interrupt libraries
