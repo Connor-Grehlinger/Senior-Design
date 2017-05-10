@@ -25,7 +25,7 @@ File timingValues;          // SD card file for data storage
 #define LED_PIN 13
 
 volatile unsigned int periodLength;
-volatile unsigned int periodLengths[144];
+volatile unsigned int periodLengths[192];
 
 volatile unsigned int firstRisingEdgeTime;
 volatile unsigned int secondRisingEdgeTime;
@@ -175,7 +175,7 @@ void loop() {
         
         while(1)    // Infinite loop for replay
         {
-          for (int i = 0; i < 144; i++)
+          for (int i = 0; i < 192; i++)
           {
             Serial.println(periodLengths[i]);
             if (periodLengths[i] == 0)
@@ -184,7 +184,7 @@ void loop() {
             }
             else if(periodLengths[i] == 1)
             {
-              setFrequency(15600);
+              setFrequency(12500);
             }
             else 
             {

@@ -44,20 +44,21 @@ void calcPulseTime()
 {
     if(!state)
     {
-        firstRisingEdgeTime = micros();     // capture first timestamp
+        firstRisingEdgeTime = micros();     // Capture first rising edge timestamp
         state ^= 1;
     }
     else
     {
-        secondRisingEdgeTime = micros();    // capture second rising 
+        secondRisingEdgeTime = micros();    // Capture second rising edge timestamp
 
         // Determine difference and get ready for next timing capture
         periodLength = (secondRisingEdgeTime - firstRisingEdgeTime);
         firstRisingEdgeTime = secondRisingEdgeTime;
         
-        if (index < 144)        // store period length in an array for writing later
+        // Collect up to 192 bits (two passes of 96 bit data on card)
+        if (index < 192)    
         {
-            periodLengths[index] = periodLength;
+            periodLengths[index] = periodLength;    // Store period length in an array for writing later
             index++;
         }
         state ^= 1;
@@ -132,11 +133,11 @@ void loop() {
               
               // Decision function to decode timing values as 0's or 1's
               // 0's have period of about 64 us; 1's are about 80us (some small variation)
-              if (periodLengths[i] < 72 && periodLengths[i] > 40)
+              if (periodLengths[i] < 72 && periodLengths[i] >= 56)
               {
                 periodLengths[i] = 0;
               }
-              else if (periodLengths[i] >= 72 && periodLengths[i] < 100)
+              else if (periodLengths[i] >= 72 && periodLengths[i] <= 88)
               {
                 periodLengths[i] = 1;
               }
@@ -157,7 +158,10 @@ void loop() {
           // if the file didn't open, print an error:
           Serial.println("Error opening test.txt during write");
         }
-        /* --------WRITE COMPLETE-------- */
+        
+        /* --------WRITE COMPLETE-------- 
+           --------READ TO CHECK---------*/
+        
         
         delay(2000);    // wait for 2 seconds 
 
