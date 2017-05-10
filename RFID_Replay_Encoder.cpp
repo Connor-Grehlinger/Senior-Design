@@ -1,20 +1,12 @@
 /*  Team Breach Prototype Testing 
   Connor Grehlinger, Keith Doggett, Mathew Schlogel, John Oribioye, Matt Leung
   --------------------------------------------------------------
-  #define PWM_SOURCE 34
-  pwmin = pulseIn(PWM_SOURCE, HIGH, 20000);
-
-  This waits for the digital pin to go from LOW to HIGH to LOW, 
-  Very slow 
-  --------------------------------------------------------------
-  Use interrupts for better result 
-
-  Trying with digital pin 4 first (PORTD = B00010000)
-  PORTD = B10101000; // sets digital pins 7,5,3 HIGH
+  Source code for replay attack
   
+  -Data bitset from RFID card is read from test.txt file on SD card
+  -Arduino encodes an output signal based on bitset
+  -Square wave signal of varying frequency (0 --> 15.6kHz, 1 --> 12.5kHz)
   
-  DDRD &= ~(1<<PD2);    //Configure PORTD pin 2 as an input
-  PORTD |= (1<<PD2);    //Activate pull-ups in PORTD pin 2
   
 */
  
@@ -36,7 +28,7 @@ File timingValues;          // SD card file for data storage
 
 // changed from long to int
 volatile unsigned int periodLength;
-volatile unsigned int periodLengths[100];
+volatile unsigned int periodLengths[144];
 
 volatile unsigned int firstRisingEdgeTime;
 volatile unsigned int secondRisingEdgeTime;
@@ -182,7 +174,7 @@ void loop() {
         }
         delay(3000);
         Serial.println("Now displaying values from newly populated on-board array:");
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 144; i++)
         {
           Serial.println(periodLengths[i]);
           if (periodLengths[i] == 0)

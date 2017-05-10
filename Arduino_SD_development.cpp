@@ -10,6 +10,9 @@
  ** CS - pin 4 (for MKRZero SD: SDCARD_SS_PIN)
 
  This example code is in the public domain.
+ 
+ Project Breach used this online example to develop SD card data storage 
+ for it's senior design prototype 
 
  */
 
