@@ -131,8 +131,7 @@ void setup() {
       int i = 0;
       while (timingValues.available()) {
               
-        //periodLengths[i] = (volatile unsigned int)timingValues.read();
-        periodLengths[i] = (volatile unsigned int)timingValues.println();
+        periodLengths[i] = (volatile unsigned int)timingValues.read();
         //Serial.write(timingValues.read());
         i++;
       }
